@@ -1,25 +1,27 @@
-FROM node:18-bullseye
+FROM python:3.11-slim-bullseye
 
-# Install Python and pip
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
+    curl \
     && rm -rf /var/lib/apt/lists/*
-
-RUN ln -sf /usr/bin/python3 /usr/bin/python
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY requirements.txt ./
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-RUN npm ci
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application code
 COPY . .
 
-# 🚀 THIS IS THE CRITICAL MISSING LINE
+# Create non-root user for security (optional but recommended)
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
 EXPOSE 8000
 
-# Use shell so ${PORT} expands
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+# Use environment variable for port (Render provides $PORT)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
