@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Make sure this environment variable is set correctly
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sunny-recreation-production.up.railway.app/api/v1';
+// Use environment variable for production, fallback to your Render backend
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://email-productivity-agent-n93a.onrender.com/api/v1';
 
 console.log('🚀 [API] Initializing with base URL:', API_BASE_URL);
 
@@ -93,7 +93,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Enhanced Authentication API with comprehensive debugging - CORRECTED ENDPOINTS
+// Enhanced Authentication API with comprehensive debugging
 export const authApi = {
   register: async (userData) => {
     console.log('📝 [Auth] Registering user:', { 
@@ -111,8 +111,7 @@ export const authApi = {
     console.log('📤 [Auth] Sending registration data:', registerData);
     
     try {
-      // CORRECTED: Changed from '/auth/register' to '/register'
-      const response = await apiClient.post('/register', registerData);
+      const response = await apiClient.post('/auth/register', registerData);
       console.log('✅ [Auth] Registration successful:', {
         userId: response.data.user_id,
         email: response.data.email,
@@ -139,8 +138,7 @@ export const authApi = {
     };
     
     try {
-      // CORRECTED: Changed from '/auth/login' to '/login'
-      const response = await apiClient.post('/login', loginData);
+      const response = await apiClient.post('/auth/login', loginData);
       console.log('✅ [Auth] Login successful:', {
         hasToken: !!response.data.access_token,
         tokenPreview: response.data.access_token ? `${response.data.access_token.substring(0, 20)}...` : 'None',
@@ -180,8 +178,7 @@ export const authApi = {
     localStorage.removeItem('user');
     
     try {
-      // CORRECTED: Changed from '/auth/logout' to '/logout'
-      const response = await apiClient.post('/logout');
+      const response = await apiClient.post('/auth/logout');
       console.log('✅ [Auth] Backend logout successful');
       return response;
     } catch (error) {
@@ -197,8 +194,7 @@ export const authApi = {
     console.log('🔍 [Auth] Using token:', token ? `${token.substring(0, 20)}...` : 'None');
     
     try {
-      // CORRECTED: Changed from '/auth/me' to '/me'
-      const response = await apiClient.get('/me');
+      const response = await apiClient.get('/auth/me');
       console.log('✅ [Auth] Current user fetched:', {
         email: response.data.email,
         id: response.data.id,
@@ -217,8 +213,7 @@ export const authApi = {
   refreshToken: async () => {
     console.log('🔄 [Auth] Refreshing token');
     try {
-      // CORRECTED: Changed from '/auth/refresh' to '/refresh'
-      const response = await apiClient.post('/refresh');
+      const response = await apiClient.post('/auth/refresh');
       console.log('✅ [Auth] Token refreshed successfully');
       return response;
     } catch (error) {
@@ -230,8 +225,7 @@ export const authApi = {
   verifyEmail: async (data) => {
     console.log('📧 [Auth] Verifying email with token');
     try {
-      // CORRECTED: Changed from '/auth/verify-email' to '/verify-email'
-      const response = await apiClient.post('/verify-email', data);
+      const response = await apiClient.post('/auth/verify-email', data);
       console.log('✅ [Auth] Email verification successful');
       return response;
     } catch (error) {
@@ -243,8 +237,7 @@ export const authApi = {
   forgotPassword: async (data) => {
     console.log('🔐 [Auth] Requesting password reset for:', data.email);
     try {
-      // CORRECTED: Changed from '/auth/forgot-password' to '/forgot-password'
-      const response = await apiClient.post('/forgot-password', data);
+      const response = await apiClient.post('/auth/forgot-password', data);
       console.log('✅ [Auth] Password reset request sent');
       return response;
     } catch (error) {
@@ -256,8 +249,7 @@ export const authApi = {
   resetPassword: async (data) => {
     console.log('🔐 [Auth] Resetting password with token');
     try {
-      // CORRECTED: Changed from '/auth/reset-password' to '/reset-password'
-      const response = await apiClient.post('/reset-password', data);
+      const response = await apiClient.post('/auth/reset-password', data);
       console.log('✅ [Auth] Password reset successful');
       return response;
     } catch (error) {
@@ -272,7 +264,7 @@ export const emailApi = {
   getUserInbox: async (filters = {}) => {
     console.log('📧 [Email] Fetching user inbox with filters:', filters);
     try {
-      const response = await apiClient.get('/emails/my-inbox', { params: filters });
+      const response = await apiClient.get('/emails/inbox', { params: filters });
       console.log('✅ [Email] Inbox fetched successfully:', {
         emailsCount: response.data?.length || 0,
         hasEmails: !!response.data && response.data.length > 0
@@ -478,7 +470,7 @@ export const tokenUtils = {
 export const createWebSocket = (clientId = 'default') => {
   const token = localStorage.getItem('auth_token');
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const baseUrl = import.meta.env.VITE_API_URL?.replace(/^https?/, protocol);
+  const baseUrl = API_BASE_URL.replace(/^https?/, protocol).replace('/api/v1', '');
   const wsUrl = `${baseUrl}/ws/agent?client_id=${clientId}${token ? `&token=${token}` : ''}`;
   
   console.log('🔌 [WebSocket] Connecting to:', wsUrl);
